@@ -1,6 +1,9 @@
 \documentclass[10pt, oneside]{article} 
 \usepackage{amsmath, amsthm, amssymb, calrsfs, wasysym, verbatim, bbm, color, graphics, geometry}
 
+\usepackage{titlesec}
+\setcounter{secnumdepth}{3}
+
 \geometry{tmargin=.75in, bmargin=.75in, lmargin=.75in, rmargin = .75in}  
 
 \newcommand{\O}{\mathbb{O}}
@@ -9,6 +12,7 @@
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Q}{\mathbb{Q}}
+\newcommand{\E}{\mathbb{E}}
 \newcommand{\Cdot}{\boldsymbol{\cdot}}
 
 \newtheorem{thm}{Theorem}
@@ -36,6 +40,8 @@ The first source that we will be taking a look at is \textbf{Step by Step Diffus
 \subsection{Fundamentals of Diffusion}
 
 Gaussian diffusion is the act of taking images that have had noise applied to them, \textit{denoising} the image in order to gain a deeper understanding of the framework that the image is built on. 
+\\
+\\
 
 We will begin by exploring how we inject our images with noise.  
 
@@ -47,6 +53,8 @@ We will begin by exploring how we inject our images with noise.
 \end{defn}
 
 Essentially, we are creating a target distribution $p*$ that is generated using a data set we have identified.  Then, using this formula, we generate multiple random variables $(x_0, x_1, x_2, \ldots, x_t$.  With these random variables (in our case, images), we can identify that we slowly begin to approach the \textbf{Gaussian Distribution}, therefore, we can sample the Gaussian rather then our originally defined $p*$ distribution.
+\\
+\\
 
 We can evaluate the two distributions using a formula known as KL Divergence.
 
@@ -100,30 +108,74 @@ It might be important to have these definition's on hand as well, mainly just as
 \end{defn}
 
 Now that we have initial definitions out of the way, let's reevaluate our problem.  We have an image, we want to define some way to reconstruct an image of that nature.  Our sub problem is essentially:
+\\
+\\
 
 \textit{"Given a sample marginally distributed as $p_t$, introduce a sample marginally distributed as $p_{t-1}$ "}
+\\
+\\
 
 Now that we have established our noisy image, the goal is to create a model which can identify features and effectively denoise our image.  This method is known as a \textbf{reverse sampler}.
+\\
+\\
 
 We would effectively move through each position until indefinitely reaching our original, target distribution $(p_0 = p^*)$.  This leads us to the primary idea behind diffusion, rather then learning how to go from a noised image back in one step (more in line to how a VAE functions), we instead go through multiple steps and learn the process behind each.
+\\
+\\
 
 We can construct reverse samplers in many different ways, the \textbf{DDPM Sampler} is known as the standard diffusion sampler.  This uses a very simple strategy, at a time $t$, given the input $z$, where $z$ is a sample from $p_t$, output a sample from the conditional distribution.
 \[
     p(x_{t-1}|x_t = z)
 .\] 
 
-This seems very simple but realistically there is much more to the entire process.  If we were to have a model for every single step of $x_t$, this would be quite a large process.  The key is identifying the \textit{per step noise} or  \sigma.
+This seems very simple but realistically there is much more to the entire process.  If we were to have a model for every single step of $x_t$, this would be quite a large process.  The key is identifying the \textit{per step noise} or  $\sigma$.
+\\
+\\
 
 If this amount of noise that we are adding per step is small enough, the distribution becomes simple.  
 
 \begin{defn}
-    \textbf{Diffusion Reverse Process}: For small \sigma, the Gaussian diffusion process defined in (1), the conditional distribution $p(x_{t-1}|x_t$ is itself close to Gaussian.  That is, for all the times $t$ and conditioning $z \subset \R^d$, there exists some mean parameter $\mu \subset \R^d$ such that:
+    \textbf{Diffusion Reverse Process}: For small $\sigma$, the Gaussian diffusion process defined in (1), the conditional distribution $p(x_{t-1}|x_t$ is itself close to Gaussian.  That is, for all the times $t$ and conditioning $z \subset \R^d$, there exists some mean parameter $\mu \subset \R^d$ such that:
  \[
 p(x_{t-1}|x_t = z) \approx \mathcal{N}(x_{t-1} : \mu, \sigma^2
 .\] 
-There is a lot going on here, let's talk about it in a bit more detail.  Essentially speaking, if we have the distribution that we are trying to understand, by targeting a certain point and minimizing our \sigma value, the distribution approaches that of the Gaussian at a much more aggressive rate.  This allows us to have one missing value to focus on, the mean $(\mu)$.
+There is a lot going on here, let's talk about it in a bit more detail.  Essentially speaking, if we have the distribution that we are trying to understand, by targeting a certain point and minimizing our $\sigma$ value, the distribution approaches that of the Gaussian at a much more aggressive rate.  This allows us to have one missing value to focus on, the mean $(\mu)$.
 
 \end{defn}
+
+This is a really important statement, so let's go through this one more time.  
+
+\begin{itemize}
+    \item For a given time $t$ and a conditioning value $x_t$, learning the mean of $p(x_{t-1}|x_t$ is sufficient to learn the full conditional distribution $p(x_{t-1}|x_t$.
+    \item Now that we know we must just determine the mean (\mu), we can just utilize a simple tool like \textbf{simple linear regression}! 
+    \item to begin we have a joint distribution $(x_{t-1}, x_t)$
+    \item Our goal is to estimate $\E[x_{t-1}, x_t]$
+\end{itemize}
+
+\begin{defn}
+    \textbf{Standard Regression Loss} : Remember, for any distribution over $(x, y)$, we have: 
+\[
+\begin{aligned}
+    &\arg \min_f \E\left[ || f(x) - y ||^2 \right] = \E[y|x] \\
+    &\mu_{t-1}(z) := \E[x_{t-1}|x_t = z] \\
+    &\mu_{t-1} = \arg \min_{f : \R^d \rightarrow \R^d} \E_{x_t, x_{t-1}}  || f(x_t) - x_{t-1} ||_2^2 \\
+    &\arg \min_{f : \R^d \rightarrow \R^{dxd`}} \E_{x_t, x_{t-1}, \mathcal{n}_t}  || f(x_{t-1} + \mathcal{n}_t) - x_{t-1}||^2_2 
+\end{aligned}
+\]
+\end{defn}
+
+Essentially, we are optimizing the $\mu $ for the mini\mum difference between our given distribution and the noise that is generated on the image.  $x_0$ is from our target distribution $p^*$. When target $p^*$ is a distribution on images, then the corresponding regression problem is exactly an \textbf{image denoising objective}.  This objective can then be approached with deep learning techniques such as traditional CNN's.  
+\\
+\\
+Through this process we have taken our goal of \textbf{learning to sample from an arbitrary distribution} to the standard \textbf{problem of regression}.
+
+\\
+\\
+
+\subsection{Fundamentals of Diffusion}
+\begin{subsection}
+    
+\end{subsection}
 
 \end{document}
 
