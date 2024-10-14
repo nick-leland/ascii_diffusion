@@ -175,8 +175,38 @@ Through this process we have taken our goal of \textbf{learning to sample from a
 \\
 
 \subsection{Diffusions in the Abstract}
-Forget about the Gaussian now.  
+Forget about the Gaussian now. Let's break down our \textit{diffusion-like generative model}. 
+\begin{itemize}
+    \item Start with a target distribution ($p^*$)
+    \item Pick a base distribution ($q(x)$) that is easy to sample from (Standard Gaussian or i.i.d bits)
+    \item Construct a sequence of distributions which interpolate between the target $p^*$ and the base distribution $q$.  We now have a set of distributions $p_0, p_1, p_2, \ldots, p_t$. 
+    \item With these distributions, $p_0 = p^*$ (Our Target), $p_t = q$ (base distribution) and the rest of the distributions, $p_t-1, pt$, are marginally close to one another.  The smaller steps the more accurately we can assume the base distribution.
+    \item Then we learn a \textit{reverse sampler} to take our $p_t$ distributions and transform them into $p_{t-1}$.  This is how we train the model, or our \textit{learning step}.
+\end{itemize}
 
+\begin{defn}
+    \textbf{Reverse Sampler} Given a sequence of marginal distributions $p_t$, a reverse sampler for step $t$ is a potentially stochastic function $F_t$ such that if $x_t ~ p_t$, then the marginal distribution of $F_t(x_t)$ is exactly $p_{t-1}$:
+    \[
+        {F_t(z) : z ~ p_t} \equiv p_{t-1}
+    \] 
+\end{defn}
+
+Remember, stochastic functions are just functions that have an unpredictable outcome, which is entirely valid based on the assumption of how noise is added.
+\\
+\\
+There are many possible reverse samplers that are available, some are even \textit{deterministic}, or include no randomness. In some cases, it is possible to instantiate in a discrete setting where the distribution $p^*$ is over a finite set and there are corresponding "interpolating distributions" and reverse samplers. 
+\\
+\\
+We will be evaluating three very popular reverse samplers here:
+\begin{itemize}
+    \item The DDPM sampler
+    \item The DDIM Ssampler (More deterministic
+    \item The Family of \textit{flow-matching models}, a generalization of DDIM
+\end{itemize}
+
+\subsection{Discretization}
+Very quickly, we run into the problem regarding dealing with discrete values (float vs int). 
+Look at the wikipedia page for this I'm ngl
 \end{document}
 
 
