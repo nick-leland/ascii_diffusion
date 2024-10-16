@@ -4,6 +4,8 @@
 \usepackage{titlesec}
 \setcounter{secnumdepth}{3}
 
+\usepackage{hyperref}
+
 \geometry{tmargin=.75in, bmargin=.75in, lmargin=.75in, rmargin = .75in}  
 
 \newcommand{\O}{\mathbb{O}}
@@ -235,12 +237,27 @@ Remember, $\Delta t =  \frac{1}{T}$ is the amount that we will be scaling by.  W
 \\
 At this point, we will be taking a temporary pause with this section and instead be jumping to the next chapter of these notes.  This will build up the fundamentals regarding Stochastic Differential Equations, which will be very relative for the upcoming diffusion notes. 
 
+\section{Stochastic Sampling: DDPM}
+\begin{defn}
+    DDPM : Denoising Diffusion Probabilistic Models
+\end{defn}
+
+Here, we will be discussing the DDPM-like reverse sampler which is conceptually the same as that popularized byu \textit{Denoising Diffusion Probabilistic Models} (DDPM) by Ho et al. [2020].
+Just to reiterate, previously we discussed using $\Delta t$ as a scaling factor within discretization of our variance to prevent exponential scaling.  A footnote here discusses that we are still using a "Variance Exploding" diffusion forwar d process.  The variance is still growing, but instead, it is growing at a \textit{controllable rate} that we are able to evaluate as it grows towards our target distribution. 
+\\
+\\
+Let's consider the setup that we had reviewed previously with a target distribution $p^*$ and a joint distribution of noisy samples $(x_0, x_{\Delta t}, \ldots, x_1)$.  A DDPM will require estimates to be pulled from the following expectations:
+\[
+    \mu_t (z) : = \E[x_t | x_{t+\Deltat} = z]
+.\] 
+
+
 
 \chapter{Stochastic Differential Equations}
 \section{Differential Equations}
 This section will be primarily reviewing general differential equations and their fundamentals.  We will be going over the baselines with some basic videos, and then diving into more traditional mathematical approaches after that.  
 \subsection{Differential Equations, a tourist's guide}
-The first resource that we will be evaluating is the 3Blue1Brown video series regarding differential equations. This is avalible here: https://www.youtube.com/watch?v=p_di4Zn4wz4&list=PLZHQObOWTQDNPOjrT6KVlfJuKtYTftqH6
+The first resource that we will be evaluating is the 3Blue1Brown video series regarding differential equations. This is avalible here: \href{https://www.youtube.com/watch?v=p_di4Zn4wz4&list=PLZHQObOWTQDNPOjrT6KVlfJuKtYTftqH6}{Differential Equations, a Tourist's Guide}.
 
 Differential Equations are essentially a function in which it is easier to document the change in numbers rather then the direct values.  
 
@@ -259,10 +276,90 @@ Again, if my acceleration is a second or d er derivative, -9.8.  When I am tryin
 
 What if the forces depend on the location of the body? At this rate, we have an interchangeable exchange between a potential location and the resulting differential variable.  
 
-Often in differential equations, the puzzles you face involve finding a derivative or higher order derivative which is defined interms of the function itself. 
+Often in differential equations, the puzzles you face involve finding a function whose derivative or higher order derivative which is defined in terms of the function itself. 
+
+In physics, it is often that you only deal with Second Or d er Differential Equations. $\ddot{x} = -\mu\dot{x}(t) - wx(t)$ where $\ddot{x}$ is our curvature, $\dot{x}$ is our slope and $x(t)$ is the height. We can continue to push our ODE's to higher degrees. 
+\\
+\\
+In a way, we are chasing our tail over and over again, our goal is to identify the rate of change of a rate of change.  The common example to review here, is the pendulum.  Let's setup this problem.  X is our arc, and $\theta$ is our angle.  We will clarify $x = L\theta$ and assume the typical gravity.  We are essentially looking for not the downward force but the tangential force to the $x$ arc. The tangential force would equate to $-g\cdot sin(\theta)$ due to the fact that the $\theta$ position from our pendulum is simultaneous with the $\theta$ of the tangential force.
+
+We will consider the $\theta$ positive on the right, and negative on the left.  We can then define the acceleration as follows:
+\[
+    a = \ddot{x} = -g \cdot sign(\theta)
+.\] 
+Now at this point, we would try to identify the second order differential equation for $\theta$. 
+\[
+    \ddot{\theta}(t) = -\mu\dot{\theta}(t) - \frac{g}{L} \cdot sin(\theta(t))
+.\] 
+You may notice the additional term $-\mu\dot{\theta}(t)$ in our equation.  This is a general blanket term that we will use to describe air resistance, or the slow from acceleration for our pendulum.  Typically you may see some assumption to sin waves with early physics talks and the pendulum problem, it is very important to forget this assumption and instead to remember that it is different.  When viewing the assumption, $\theta$ is the function, while our more ac curate model is using $\theta$ as the input to our function.  
+
+If we were to remove the term that we included for air resistance, we could reduce this term down and actually solve this problem, but it turns into a very complex problem to solve! Let's evaluate, what we gain from solving these types of problems.
+
+Ideally, we take a differential equation, determine a solution, and then use that solution for one of two things, \textbf{Understanding} or \textbf{Computation}.
+
+For any function, of ten times we could define a new function that satisfies the ODE, however, this is pointless unless you can then perform \textbf{computations} or \textbf{understanding} from the solution.  Because of this, often we skip the solution, and instead jump right to attempting to create an understanding or performing computations from the equation alone.  
+\\
+\\
+What does this look like with our pendulum problem? We could define the individual positions on a 2-Dimensional diagram that gives all of the possible positions.  We define a \textbf{state space} which is an abstraction of our state.  This is a relatively common term within computer science, used to represent the set of all possible configurations of a system.  $\theta$ is our $x$ axis while $\dot{\theta}$ is our $y$ axis.  If we were to graph these, then use one of the positions as our starting value, you would notice that we essentially graph a spiral, slowly reducing to the origin of our $\theta, \dot{\theta}$ graph.  
+\\
+\\
+Using this, we can visualize the state space as a vector field.  We can create vectors defined as follows:
+\[
+\frac{d}{dt} \begin{bmatrix}
+    \theta(t) \\
+    \dot{\theta}(t)
+\end{bmatrix} = 
+\begin{bmatrix}
+    \dot{\theta}(t)\\
+    \ddot{\theta}(t)
+    
+\end{bmatrix}
+.\] 
+
+We would interpret this as being the resulting vector attached to a point in space.  If we latch on to a position or begin at a position within our state space, the vector would define how the point would continue to move. 
+The first item here tells us our acceleration moving from right to left. The second component of our vector can actually be re-represented in terms of the first or d er derivative of $\dot{\theta}(t)$.
+\[
+\frac{d}{dt} \begin{bmatrix}
+    \theta(t) \\
+    \dot{\theta}(t)
+\end{bmatrix} = 
+\begin{bmatrix}
+    \dot{\theta}(t)\\
+    \ddot{\theta}(t)
+    
+\end{bmatrix} = 
+\begin{bmatrix}
+    \dot{\theta}(t)\\
+    -\mu\dot{\theta}(t) - \frac{g}{L} sin (\theta(t))
+\end{bmatrix}
+.\] 
+
+Realize, we have essentially broken up a difficult \textbf{Second Order ODE} to its first order component over a system.  It might even be worth moving from repeating $\theta$ and $\dot{\theta}$ to another variable all together, in order to really drive home the fact that we are dealing with another theoretical component all together.
+\\
+\\
+This is an important trick, move from higher form differential equations to a system of the lower form differential equation. 
+
+There is another important fact to observe here as well.  With higher degrees of freedom, we increase potential dimensional space that our theoretical point would flow through.  We can call a vector space like this a \textbf{phase space}.  Within physics this is known as a space that represents position and time.  Phase Space is strong because it helps to visualize the spectrum of initial conditions.  With these vector charts, we can then represent something we will call \textbf{phase flow}.  
+
+Another aspect that we will tend to explore are whether or not certain points are \textbf{stable} within our phase space.  For instance, back to our pendulum example, A point on the $x$ axis (our $\theta$ ) could be evaluated as stable if we were curious as to whether or not the pendulum would return to that exact position.  Think of this like an inherent loop.  
+Knowing the physical properties of a pendulum it is easy to assume that this wouldn't be the case, but how about if we were to evaluate our matrix? 
+\[
+\begin{bmatrix}
+    \dot{\theta}(t)\\
+    -\mu\dot{\theta}(t) - \frac{g}{L} sin (\theta(t))
+\end{bmatrix}
+.\] 
+We now lose out the intuition that we would have.  Instead, we would evaluate the contractual or expansive look at flow.  
+
+Remember, a cute way to think about differential equations are to evaluate them to \textit{love}.  We can't exactly describe the current position, but we can express them as the changing emotion and then even further if we have two variables evaluating two individuals that are interested in one another. 
+\\
+\\
+This previous section dealt with the understanding portion, but how do we deal with \textbf{computation}?  Ideally, we would define a similar vector space, but now we would add an additional term, $\Delta t$.  This new term is essentially our definitive time step amount.  We computationally run through a small step and then determine an approximation point.  The smaller a $\Delta t$, the more accurate the resulting view.  
+
+Interestingly enough, there begins to emerge some other odd values here that deal with \textbf{Chaos theory} (easily the coolest sounding math name ever).  This deals with systems that are extremely sensitive to initial conditions that disrupt underlying patterns.
 
 \section{18.S096 Lecture 21: Stochastic Differential Equations}
-This next section of notes will be directly from an MiT lecture avalible on youtube at https://www.youtube.com/watch?v=qdbkvD4N-us.  This is primarily from the background of a FinTech domain, but should also go through some aspects that will be applicable for diffusion before we jump into the next section.
+This next section of notes will be directly from an MiT lecture avalible on youtube at \href{https://www.youtube.com/watch?v=qdbkvD4N-us}{Lecture 21: Stochastic Differential Equations}.  This is primarily from the background of a FinTech domain, but should also go through some aspects that will be applicable for diffusion before we jump into the next section.
 \\
 \\
 Say we are given a Differential Equation.  
