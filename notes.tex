@@ -200,13 +200,77 @@ There are many possible reverse samplers that are available, some are even \text
 We will be evaluating three very popular reverse samplers here:
 \begin{itemize}
     \item The DDPM sampler
-    \item The DDIM Ssampler (More deterministic
+    \item The DDIM Sampler (More deterministic
     \item The Family of \textit{flow-matching models}, a generalization of DDIM
 \end{itemize}
 
 \subsection{Discretization}
-Very quickly, we run into the problem regarding dealing with discrete values (float vs int). 
-Look at the wikipedia page for this I'm ngl
+Very quickly, we run into the problem regarding dealing with discrete values (float vs int). The process of taking a function that is normally a continuous function and transferring that into one that is discrete is known as \textbf{discretization}. The goal is to reduce the amount of error down to a set \textit{negligible amount} by the end of the process.  
+\\
+\\
+Currently we have explained the process of de-noising an image as finding a step value ($p_{t-1}$ where the value is \textit{extremely small}, therefore we can draw the same assumptions about the baseline distribution that we are using.  We run into a problem when evaluating how small this step ($p_t, p_{t-1}$ actually ends up being.  
+\\
+\\
+As a refresher, we have a time-evolving function, $p(x, t)$, which starts from the target distribution ($p_0$ at time $t = 0$ ) and ends at the noisy distribution ($p_t$ at time $t = 1$).  It is important to note, this is not a traditional function but rather the current status of our distribution at the set points ($x$ and $t$).  To reiterate, $p(t_0, x)$ is our original distribution (our clean image) and $p(t_1, x)$ is our distribution where we represent our target distribution.
+ \[
+p(x, k\Delta t) = p_k(x), where \Delta t = \frac{1}{T}
+.\] 
+Here, $T$ is the \textit{fineness} of the steps that we are taking.  The more steps (and presumably the smaller the $\sigma$ value), the closer the image is from step to step.
+\\
+\\
+We run into a very interesting problem now. We need to ensure that the variance of the final distribution $p_t$ is \textit{independent of the number discretization steps}.  To ensure that this is a reality, we need to be more specific about our incremental variances. 
+\\
+\\
+Let's look at the following given fact.  If $x_k = x_{k-1} + \mathcal{N}(0, \sigma^2)$ then $x_t \sim \mathcal{N}(x_0, T\sigma^2)$
+\\
+\\
+Essentially, because we are pulling from our target distribution so many times, normally, this would cause an overlap to occur, which in turn would aggressively scale our variance.  This would result in our variance scaling at a factor of $T \cdot \sigma^2$.  This would be quite problematic as the stacking variance would skew our distribution.  To accommodate for this, we will instead by scaling the variance by the number of steps. 
+\[
+Total\ Variance = T \cdot (\sigma^2 \cdot \Delta t) = T \cdot (\sigma^2 \cdot \frac{1}{T}) = \sigma^2_2
+.\] 
+Remember, $\Delta t =  \frac{1}{T}$ is the amount that we will be scaling by.  With this fact, we will be choosing. \[
+    \sigma = sigma_q\sqrt{\Delta t}
+.\] where $\sigma^2_q$ is the \textit{desired terminal variance}.  This concept of \sqrt{\Delta t} scaling will be very important, and it's the baseline that SDE (Stochastic Differential Equation) formulation will build on later. By choosing $\sigma^2_q$ with the desired terminal variance, we ensure that the variance of $P_t$ is always $\sigma^2_q$ regardless of our $T$.
+\\
+\\
+At this point, we will be taking a temporary pause with this section and instead be jumping to the next chapter of these notes.  This will build up the fundamentals regarding Stochastic Differential Equations, which will be very relative for the upcoming diffusion notes. 
+
+
+\chapter{Stochastic Differential Equations}
+\section{Differential Equations}
+This section will be primarily reviewing general differential equations and their fundamentals.  We will be going over the baselines with some basic videos, and then diving into more traditional mathematical approaches after that.  
+\subsection{Differential Equations, a tourist's guide}
+The first resource that we will be evaluating is the 3Blue1Brown video series regarding differential equations. This is avalible here: https://www.youtube.com/watch?v=p_di4Zn4wz4&list=PLZHQObOWTQDNPOjrT6KVlfJuKtYTftqH6
+
+Differential Equations are essentially a function in which it is easier to document the change in numbers rather then the direct values.  
+
+Why they grow or shrink over why it is one value over another.
+
+Differential equations are one of two:
+Ordinary Differential Equations (one input) or Partial Differential Equations (multiple inputs)
+\begin{itemize}
+    \item Ordinary Differential Equations or \textbf{ODE}'s, are typically involving time.  This is very commonly associated with physics calculations.  
+    \item Partial Differential Equations or \textbf{PDE}'s, deal with multiple inputs like a temperature at points in a solid body or the velocity of a fluid at different points in space. 
+\end{itemize}
+Say we have an item falling.  Based on earths gravity, our object is falling at a rate of $-9.8 \frac{\frac{m}{s}}{s}$.  This itself can be expressed as a differential equation, where it's derivative, gives the velocity, and the second derivative as the acceleration.  
+We turn this into a differential equation problem when we begin to ask the reverse question.  If we look at a generalized problem, we find that as we work through this problem backwards, we begin to introduce additional constants that are free to change.  If we want to find the function which has an acceleration of 9.8, we are looking for a function with $-g$ as its derivative.  This ends up introducing a $t$ constant, which we know as time.  If we do the same with our new function, looking for the original function given our acceleration and time constant, we now introduce an additional constant, one that changes the starting position. 
+There can be many functions with each derivative, which is why we now need to clarify given the new constants.  
+Again, if my acceleration is a second or d er derivative, -9.8.  When I am trying to find the inverse of the derivative, there are many functions that might end up with this derivative, we need to isolate with the additional time position. 
+
+What if the forces depend on the location of the body? At this rate, we have an interchangeable exchange between a potential location and the resulting differential variable.  
+
+Often in differential equations, the puzzles you face involve finding a derivative or higher order derivative which is defined interms of the function itself. 
+
+\section{18.S096 Lecture 21: Stochastic Differential Equations}
+This next section of notes will be directly from an MiT lecture avalible on youtube at https://www.youtube.com/watch?v=qdbkvD4N-us.  This is primarily from the background of a FinTech domain, but should also go through some aspects that will be applicable for diffusion before we jump into the next section.
+\\
+\\
+Say we are given a Differential Equation.  
+\[
+    dX = \mu(t, X(t))dt + \sigma(t, X(t) dB(t)
+.\] 
+Our goal is to find a stochastic process $X(t)$ that satisfies a given function.  
+
 \end{document}
 
 
