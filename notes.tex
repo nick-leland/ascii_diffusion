@@ -44,9 +44,6 @@ The first source that we will be taking a look at is \textbf{Step by Step Diffus
 \subsection{Gaussian Diffusion}
 
 Gaussian diffusion is the act of taking images that have had noise applied to them, \textit{denoising} the image in order to gain a deeper understanding of the framework that the image is built on. 
-\\
-\\
-
 We will begin by exploring how we inject our images with noise.  
 
 \begin{defn}
@@ -238,13 +235,10 @@ Remember, $\Delta t =  \frac{1}{T}$ is the amount that we will be scaling by.  W
 At this point, we will be taking a temporary pause with this section and instead be jumping to the next chapter of these notes.  This will build up the fundamentals regarding Stochastic Differential Equations, which will be very relative for the upcoming diffusion notes. 
 
 \section{Stochastic Sampling: DDPM}
-\begin{defn}
-    DDPM : Denoising Diffusion Probabilistic Models
-\end{defn}
+DDPM : Denoising Diffusion Probabilistic Models\\
 
-Here, we will be discussing the DDPM-like reverse sampler which is conceptually the same as that popularized byu \textit{Denoising Diffusion Probabilistic Models} (DDPM) by Ho et al. [2020].
-Just to reiterate, previously we discussed using $\Delta t$ as a scaling factor within discretization of our variance to prevent exponential scaling.  A footnote here discusses that we are still using a "Variance Exploding" diffusion forwar d process.  The variance is still growing, but instead, it is growing at a \textit{controllable rate} that we are able to evaluate as it grows towards our target distribution. 
-\\
+Here, we will be discussing the DDPM-like reverse sampler which are conceptually the same as that popularized byu \textit{Denoising Diffusion Probabilistic Models} (DDPM) by Ho et al. [2020].\\
+Just to reiterate, previously we discussed using $\Delta t$ as a scaling factor within discretization of our variance to prevent exponential scaling.  A footnote here discusses that we are still using a "Variance Exploding" diffusion forward process.  The variance is still growing, but instead, it is growing at a \textit{controllable rate} that we are able to evaluate as it grows towards our target distribution. \\
 \\
 Let's consider the setup that we had reviewed previously with a target distribution $p^*$ and a joint distribution of noisy samples $(x_0, x_{\Delta t}, \ldots, x_1)$.  A DDPM will require estimates to be pulled from the following expectations:
 \[
