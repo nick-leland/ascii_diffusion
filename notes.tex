@@ -23,6 +23,7 @@
 \newtheorem{rem}{Remark}
 \newtheorem{lem}{Lemma}
 \newtheorem{cor}{Corollary}
+\newtheorem{algo}{Algorithm}
 
 
 \title{Diffusion Notes}
@@ -229,7 +230,7 @@ Total\ Variance = T \cdot (\sigma^2 \cdot \Delta t) = T \cdot (\sigma^2 \cdot \f
 .\] 
 Remember, $\Delta t =  \frac{1}{T}$ is the amount that we will be scaling by.  With this fact, we will be choosing. \[
     \sigma = sigma_q\sqrt{\Delta t}
-.\] where $\sigma^2_q$ is the \textit{desired terminal variance}.  This concept of \sqrt{\Delta t} scaling will be very important, and it's the baseline that SDE (Stochastic Differential Equation) formulation will build on later. By choosing $\sigma^2_q$ with the desired terminal variance, we ensure that the variance of $P_t$ is always $\sigma^2_q$ regardless of our $T$.
+.\] where $\sigma^2_q$ is the \textit{desired terminal variance}.  This concept of $\sqrt{\Delta t}$ scaling will be very important, and it's the baseline that SDE (Stochastic Differential Equation) formulation will build on later. By choosing $\sigma^2_q$ with the desired terminal variance, we ensure that the variance of $P_t$ is always $\sigma^2_q$ regardless of our $T$.
 \\
 \\
 At this point, we will be taking a temporary pause with this section and instead be jumping to the next chapter of these notes.  This will build up the fundamentals regarding Stochastic Differential Equations, which will be very relative for the upcoming diffusion notes. 
@@ -238,13 +239,28 @@ At this point, we will be taking a temporary pause with this section and instead
 DDPM : Denoising Diffusion Probabilistic Models\\
 
 Here, we will be discussing the DDPM-like reverse sampler which are conceptually the same as that popularized byu \textit{Denoising Diffusion Probabilistic Models} (DDPM) by Ho et al. [2020].\\
-Just to reiterate, previously we discussed using $\Delta t$ as a scaling factor within discretization of our variance to prevent exponential scaling.  A footnote here discusses that we are still using a "Variance Exploding" diffusion forward process.  The variance is still growing, but instead, it is growing at a \textit{controllable rate} that we are able to evaluate as it grows towards our target distribution. \\
+\\
+Just to reiterate, previously we discussed using $\Delta t$ as a scaling factor within discretization of our variance to prevent exponential scaling.  A footnote here discusses that we are still using a "Variance Exploding" diffusion forward process.  The variance is still growing, but instead, it is growing at a \textit{controllable rate} that we are able to evaluate as it grows towards our target distribution. Now back to the continued topics..\\
 \\
 Let's consider the setup that we had reviewed previously with a target distribution $p^*$ and a joint distribution of noisy samples $(x_0, x_{\Delta t}, \ldots, x_1)$.  A DDPM will require estimates to be pulled from the following expectations:
 \[
-    \mu_t (z) : = \E[x_t | x_{t+\Deltat} = z]
+    \mu_t (z) : = \E[x_t | x_{t+\Delta t} = z]
 .\] 
 
+We are defining a set of functions, $\mu_t$, for each of our noise generation steps.  When we are within the \textbf{training} phase, our goal is to estimate samples of $x_0$ by optimizing the \textit{denoising regression objective}
+
+\[
+	\mu_t = arg\,max_{f:\R^d \rightarrow \R^d}\ \ \ \E_{x_t, x_{t+\Delta t}}\mid\midf(x_{t+\Delta t}) - x_t  \mid\mid ^2_2
+.\] 
+
+This training process typically utilizes neural-network optimization parameterization $f$. The next step is where inferencing occurs, where we take the output of our estimated functions and apply them to a new algorithm.   
+\begin{algo}
+	\textbf{Stochastic Reverse Sampler (DDPM-like)}\\
+	For input sample $x_t$, and timestep $t$, output:
+\[
+x_{t-\Delta t} \leftarrow \mu_{t-\Delta t}(x_t) + \mathcal{N}(0, \sigma^2_q \Delta t)
+.\] 
+\end{algo}
 
 
 \chapter{Stochastic Differential Equations}
