@@ -262,6 +262,22 @@ x_{t-\Delta t} \leftarrow \mu_{t-\Delta t}(x_t) + \mathcal{N}(0, \sigma^2_q \Del
 .\] 
 \end{algo}
 
+Remember our original goal, we are establishing a regression problem where we are chasing after the $\mu$ of our target distribution.  So what does the process of utilizing this algorithm look like?
+
+First, we need to generate a sample.  We sample $x_1$ as an isotropic Gaussian $x_1 \approx \mathcal{N}(0, \sigma^2_q)$, then we run the iteration of Algorithm 1 all the way down to $t=0$ to produce a generated image.  We will call this image, $\hat{x_0}$.  This should, in theory, be a re-established image from our target distribution.  \\
+\\
+In order to really \textbf{prove} out this entire process though, we need to establish the \textbf{proof} of one specific step. The missing piece here is that the \textbf{true conditional $p(x_{t-\Delta t} | x_t)$ can be well-approximated by a Gaussian}, and that this approximation increases as we decrease the amount of change from steps closer and closer to zero.  \\ 
+\\
+Intuitively, my first guess for implementation is to establish away to inject noise into an image at a given step rate, then utilizing that, measure how close a distribution is to the Gaussian based on an evaluation of probability metrics, something like a KL-Divergence. \\
+\begin{defn}
+	\textbf{Kullback-Leibler (KL) divergence} also called \textbf{relative entropy} and \textbf{I-divergence} is a type of \textit{statistical distance}: a measure of how one reference probability distribution $P$ is different from a second probability distribution $Q$.
+	\[
+		D_{KL}(P\mid\mid Q) \sum_{x \in X} P(x) \log (\frac{P(x)}{Q(x)})
+	.\] 
+	A cool way to remember this is to think about the \textit{expected surprise} when using a distribution $Q$ vs a distribution $P$.
+\end{defn}
+\subsection{Correctness of DDPM}
+
 
 \chapter{Stochastic Differential Equations}
 \section{Differential Equations}
