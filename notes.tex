@@ -1,6 +1,13 @@
 \documentclass[10pt, oneside]{report} 
 \usepackage{amsmath, amsthm, amssymb, calrsfs, wasysym, verbatim, bbm, color, graphics, geometry}
 
+\usepackage{trimclip}
+\newcommand{\halfapprox}{\mathchoice{%
+\clipbox{0em 0em 0em 0.22em}{$\displaystyle\approx$}}{%
+\clipbox{0em 0em 0em 0.22em}{$\textstyle\approx$}}{%
+\clipbox{0em 0em 0em 0.18em}{$\scriptstyle\approx$}}{%
+\clipbox{0em 0em 0em 0.18em}{$\scriptscriptstyle\approx$}}}
+
 \usepackage{titlesec}
 \setcounter{secnumdepth}{3}
 
@@ -24,6 +31,7 @@
 \newtheorem{lem}{Lemma}
 \newtheorem{cor}{Corollary}
 \newtheorem{algo}{Algorithm}
+\newtheorem{clm}{Claim}
 
 
 \title{Diffusion Notes}
@@ -277,6 +285,23 @@ Intuitively, my first guess for implementation is to establish away to inject no
 	A cool way to remember this is to think about the \textit{expected surprise} when using a distribution $Q$ vs a distribution $P$.
 \end{defn}
 \subsection{Correctness of DDPM}
+Assume that we have a smooth density over $\R^d$, we will call this $p_{t-\Delta t}(x)$.  We want to evaluate a joint distribution (map of two distributions with each as a perpendicular axis. We will define this joint distribution as $(x_{t-\Delta t}, x_t$, where $x_{t-\Delta t} \halfapprox p_{t-\Delta t}$ and $x_t \halfapprox x_{t-\Delta t} + \mathcal{N}(0, \sigma^2_q \Delta t)$.\\
+For a sufficiently small $\Delta t$, the following holds. For every conditioning of $z \in \R^d$, there exists a $\mu_z$ such that:
+\[
+	p(x_{t-\Delta t} | x_t = z) \approx \mathcal{N}(x_{t-\Delta t}; \mu_z, \sigma^2_q \Delta t)\\
+.\]
+\[
+	for some constant \mu_z depending only on z.  Moreover, it suffices to take \\
+.\]
+\[
+	\mu_z := \exists_(x_{t-\Delta t, x_t}) [x_{t-\Delta t} | x_t = z] \\
+.\]
+\[
+	= z + (\sigma^2_q \Delta t) \nabla \log p_t (z), \\
+.\]
+\[
+	where p_t is the marginal distribution of x_t
+.\]
 
 
 \chapter{Stochastic Differential Equations}
