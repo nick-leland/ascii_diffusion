@@ -290,18 +290,25 @@ For a sufficiently small $\Delta t$, the following holds. For every conditioning
 \[
 	p(x_{t-\Delta t} | x_t = z) \approx \mathcal{N}(x_{t-\Delta t}; \mu_z, \sigma^2_q \Delta t)\\
 .\]
-\[
-	for some constant \mu_z depending only on z.  Moreover, it suffices to take \\
-.\]
+\begin{center}
+    
+	for some constant $\mu_z$ depending only on $z$.  Moreover, it suffices to take \\
+\end{center}
 \[
 	\mu_z := \exists_(x_{t-\Delta t, x_t}) [x_{t-\Delta t} | x_t = z] \\
 .\]
 \[
 	= z + (\sigma^2_q \Delta t) \nabla \log p_t (z), \\
 .\]
-\[
-	where p_t is the marginal distribution of x_t
-.\]
+\begin{center}
+	where $p_t$ is the marginal distribution of $x_t$\\
+\end{center}
+So we are establishing $z$ as a given point and then determining the average($\mu$ at that point based on the predicted value.  This predicted value, $\E$ is something that would be optimized through regression.\\
+$\nabla \log p_t (z)$ is known as our \textit{score function}, where we are basically searching for the highest point within the probability distribution.  Essentially, we are trying to move in the direction where we are more likely to have values, which is very important because when the steps ($t-\Delta t$) are small, it is easy to find the optimal position of where our $\mu$ is located.\\
+It is important to note that this value $\mu_z$ is \textbf{not} actually something that we are trying to calculate! It is just important that we know a value like this does, in fact, exist.  We need to know that it exists so that we \textbf{can} learn it from samples.\\ 
+Overall this is good, I was struggling with thinking about this for a while because computationally this would be a very intensive process to try and work through for each individual pixel and for each individual step. \\
+Let's work on an informal proof of this concept. \\
+We will show an argument as to why the score shows within the reverse process.  Let's start by reviewing this with the aspect of Bayes Rule.  
 
 
 \chapter{Stochastic Differential Equations}
