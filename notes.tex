@@ -326,6 +326,8 @@ This is identical to the \textit{log-density} of a Normal distribution with $\mu
 .\] 
 The primary takeaway here is to understand that both the forward process and the backwards process both utilize $p(x_t  \mid x_{t-\Delta t})$ which is intuitively why they both have the same \textbf{functional form}.\\
 
+\subsection{Algorithms}
+
 \begin{pse}
 	\textbf{DDPM train loss}\\
 	\textbf{Input:} Neural network $f_\theta$ ; Sample-access to target distribution $p$.\\
@@ -338,6 +340,38 @@ The primary takeaway here is to understand that both the forward process and the
 	$L \leftarrow  \mid  \mid f_\theta (x_{t+\Delta t}, t + \Delta t) - x_t  \mid  \mid ^2_2$\\
 	\textbf{return} $L_\theta$\\
 \end{pse}
+
+\begin{pse}
+	\textbf{DDPM Sampling (Algorithm 1)}\\
+	\textbf{Input:} Trained model $f_\theta$\\
+	\textbf{Data:} Terminal Variance $\sigma_q$ ; step-size $\Delta t$\\
+	\textbf{Output:} $x_0$\\
+    $x_1 \leftarrow \mathcal{N}(0, \sigma^2_q)$ \\
+    \textbf{for} $t=1, (1-\Delta t), (1-2\Delta t), \ldots, \Delta t$ \textbf{do}\\
+    $\mid \eta \leftarrow \mathcal{N}(0, \sigma^2_q \Delta t)$ \\
+    $\mid x_{t-\Delta t} \leftarrow f_\theta (x_t , t) + \eta \\
+    \textbf{end}
+	\textbf{return} $x_0$\\
+\end{pse}
+
+\begin{pse}
+	\textbf{DDPM sampling (Algorithm 2)}\\
+	\textbf{Input:} Trained model $f_\theta$\\
+    \textbf{Data:} Terminal Variance $\sigma_q$; step-size $\Delta t$\\
+	\textbf{Output:} $x_0$\\
+    $x_1 \leftarrow \mathcal{N}(0, \sigma^2_q)$ \\
+    \textbf{for} $t=1, (1-\Delta t), (2-\Delta t), \ldots, \Delta t, 0$ \textbf{do}\\
+    $\mid \lambda \leftarrow \frac{\sqrt{t}}{\sqrt{t-\Delta t + \sqrt{t}}}$ \\
+    $\mid x_{t-\Delta t} \leftarrow x_t + \lambda(f_\theta(x_t, t) -x_t)$ \\
+    \textbf{end}\\
+	\textbf{return} $x_0$ \\
+\end{pse}
+
+With these sets of pseudocode established, we can begin to discuss and think about the systematic integration of these.  We will be primarily focusing on the \textbf{Jax} integration as it is my preffered machine learning framework due to efficiency. \\
+
+\subsection{Variance REduction: Predicting $x_0$}
+We have been training our diffusion models with the goal of predicting $\E[x_{t-\Delta t} | x_t]$.  This is our input to Algorithm 1, and what the output of 
+
 \chapter{Stochastic Differential Equations}
 \section{Differential Equations}
 This section will be primarily reviewing general differential equations and their fundamentals.  We will be going over the baselines with some basic videos, and then diving into more traditional mathematical approaches after that.  
