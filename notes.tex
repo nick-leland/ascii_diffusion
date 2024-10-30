@@ -32,6 +32,7 @@
 \newtheorem{cor}{Corollary}
 \newtheorem{algo}{Algorithm}
 \newtheorem{clm}{Claim}
+\newtheorem{pse}{Pseudocode}
 
 
 \title{Diffusion Notes}
@@ -303,6 +304,7 @@ For a sufficiently small $\Delta t$, the following holds. For every conditioning
 \begin{center}
 	where $p_t$ is the marginal distribution of $x_t$\\
 \end{center}
+
 So we are establishing $z$ as a given point and then determining the average($\mu$ at that point based on the predicted value.  This predicted value, $\E$ is something that would be optimized through regression.\\
 $\nabla \log p_t (z)$ is known as our \textit{score function}, where we are basically searching for the highest point within the probability distribution.  Essentially, we are trying to move in the direction where we are more likely to have values, which is very important because when the steps ($t-\Delta t$) are small, it is easy to find the optimal position of where our $\mu$ is located.\\
 It is important to note that this value $\mu_z$ is \textbf{not} actually something that we are trying to calculate! It is just important that we know a value like this does, in fact, exist.  We need to know that it exists so that we \textbf{can} learn it from samples.\\ 
@@ -310,7 +312,32 @@ Overall this is good, I was struggling with thinking about this for a while beca
 Let's work on an informal proof of this concept. \\
 We will show an argument as to why the score shows within the reverse process.  Let's start by reviewing this with the aspect of Bayes Rule.  
 
+\[
+	p(x_{t-\Delta t} | x_t) = p(x_t | x_{t-\Delta t}) p_{t-\Delta t}(x_{t-\Delta t}) / p_t (x_t)
+.\] 
 
+After working through some math, we end up with the following expression.
+\[
+	\log p(x_{t-\Delta t} | x_t) = -\frac{1}{2\sigma^2_q \Delta t} \mid  \mid x_{t-\Delta t} - \mu  \mid  \mid ^2_2
+.\] 
+This is identical to the \textit{log-density} of a Normal distribution with $\mu$ and the variable $\sigma^2_q $.  This therefore gives us a proof to show;
+\[
+	p(x_{t-\Delta t}  \mid x_t) \approx \mathcal{N}(x_{t-\Delta t}; \mu, \sigma^2_q \Delta t)
+.\] 
+The primary takeaway here is to understand that both the forward process and the backwards process both utilize $p(x_t  \mid x_{t-\Delta t})$ which is intuitively why they both have the same \textbf{functional form}.\\
+
+\begin{pse}
+	\textbf{DDPM train loss}\\
+	\textbf{Input:} Neural network $f_\theta$ ; Sample-access to target distribution $p$.\\
+	\textbf{Data:} Terminal variance $\sigma_q$ ; step-size $\Delta t$ \\
+	\textbf{Output:} Stochastic loss $L_\theta$ \\
+	$x_0 \leftarrow$ Sample($p$)\\
+	$t \leftarrow$ Unif $[0, 1]$ \\
+	$x_t \leftarrow x_0 + \mathcal{N}(0, \sigma^2_q t)$ \\
+	$x_{t+\Delta t} \leftarrow x_t + \mathcal{N}(0, \sigma^2_q \Delta t)$ \\
+	$L \leftarrow  \mid  \mid f_\theta (x_{t+\Delta t}, t + \Delta t) - x_t  \mid  \mid ^2_2$\\
+	\textbf{return} $L_\theta$\\
+\end{pse}
 \chapter{Stochastic Differential Equations}
 \section{Differential Equations}
 This section will be primarily reviewing general differential equations and their fundamentals.  We will be going over the baselines with some basic videos, and then diving into more traditional mathematical approaches after that.  
