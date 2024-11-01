@@ -369,8 +369,44 @@ The primary takeaway here is to understand that both the forward process and the
 
 With these sets of pseudocode established, we can begin to discuss and think about the systematic integration of these.  We will be primarily focusing on the \textbf{Jax} integration as it is my preffered machine learning framework due to efficiency. \\
 
-\subsection{Variance REduction: Predicting $x_0$}
-We have been training our diffusion models with the goal of predicting $\E[x_{t-\Delta t} | x_t]$.  This is our input to Algorithm 1, and what the output of 
+\subsection{Variance Reduction: Predicting $x_0$}
+We have been training our diffusion models with the goal of predicting $\E[x_{t-\Delta t} | x_t]$.  \\
+We can argue that technically, there is a method we can follow in or der to instead, estimate $\E[x_0 \mid x_t]$ and then divide by $(\frac{t}{\Delta t}$, or the number of steps that have been taken so far. \\
+We can define this through an equation as shown:
+\[
+    \E[(x_{t-\Delta t} - x_t) \mid x_t] = \frac{\Delta t}{t} \E[(x_0 - x_t) \mid x_t]
+.\] \\
+or equivalently:\\
+\[
+    \E[x_{t - \Delta t} \mid x_t ] = (\frac{\Delta t}{t}) \E[x_0 \mid x_t] + (1 - \frac{\Delta t}{t}) x_t
+.\] 
+
+Let's break this down into simpler terms.  Our goal is to estimate $\E[x_{t-\Delta t} \mid x_t]$.  This is the previous noise step given the current noise step. We are going to do this by taking the number of steps so far, and multiplying directly by the estimated sample given by the current time step ($(\frac{\Delta t}{t}) \E[x_0 \mid x_t]$).  After this we add an additional remaining noise step? I think? I believe this has something to do with $x_t = x_0 + \sum_i \eta_i$.\\
+When we predict $x_{t - \Delta t}$, it is just like predicting the last noise step.  We can define the last noise step as $\eta_{t - \Delta t} = (x_t - x_{t - \Delta t})$.  Remember, our equation to add noise to a component is:
+\[
+    x_{t + \Delta t} := x_t + \eta_t, \eta_t \approx \mathcal{N}(0, \sigma^2_q \Delta t)
+.\] 
+If we are only given the final $x_t$, \textbf{all of the previous noise steps intuitively "look the same"} ($\{\eta_i\}_{i<t}$). This is relatively simple to think about, there is no way to determine if noise was added during step 3, or if it was added during step 20.  \\
+The paper then concludes that we can define \textbf{individual noise steps are distributed identically (not independently) given $x_t$ }.  Rather then estimate a single noise step, we instead estimate the  \texit{average of all prior noise steps}.  There are $(\frac{t}{\Delta t})$ elapsed noise steps at time $t$, therefore we divide noise by the quantity (This is where the additional previous component is coming from).  \\
+\\
+\textbf{Word of Warning}: Remember, within diffusion, our goal is to estimate \textit{expectations} ($\E$ ).  We are \textbf{NOT} trying to sample directly from a distribution $p(x_0 \mid x_t$, but instead estimate what an expected sample of $x_0$ could be.\\
+This is a rather interesting thing to think about.  It should be revisited, I feel as though this is very important.\\
+\\
+\subsection{Diffusion as SDEs [Optional]}
+This is kinda scary, marked as advanced material.  Both the paper and my \textit{internal thoughts} believe that this would be better to revisit later on (probably once I actually gain a grasp on SDE's as a subject LOL).\\
+
+\subsection{Implimentation} 
+Well, this would begin the raw implimentation of our traditional DDPM.\\
+Before we begin, we will be jumping to section 1.5, \textbf{Diffusion in Practice}, as it will cover some important things that might not have been covered directly in the theory section of this tutorial.\\
+\\
+\section{Deterministic Sampling: DDIM}
+\\
+\section{Flow Matching}
+\\
+\section{Diffusion in Practice}
+We are going to skip ahead here and begin to identify different things that might be important prior to implimentation.
+\\
+
 
 \chapter{Stochastic Differential Equations}
 \section{Differential Equations}
